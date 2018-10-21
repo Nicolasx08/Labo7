@@ -25,7 +25,7 @@ public class Main extends Application {
 
         stage.setMaximized(true);
         stage.setResizable(true);
-        stage.setTitle("Allo");
+        stage.setTitle("Graphiques");
         BorderPane bp = new BorderPane();
 
         MenuItem lignes = new MenuItem("Lignes");
@@ -42,69 +42,89 @@ public class Main extends Application {
         exporter.getItems().addAll(png, gif);
         menuBar.getMenus().addAll(importer, exporter);
 
-        LineChart<String,Number> lineChart = new LineChart(genX(),genY());
+        final CategoryAxis mois = new CategoryAxis();
+        mois.setLabel("Mois");
+        final NumberAxis chiffre = new NumberAxis();
+        chiffre.setLabel("Température");
+        final LineChart<String,Number> lc = new LineChart(mois,chiffre);
+        lc.setTitle("Températures moyennes");
+
         lignes.setOnAction((event) -> {
-            lineChart.setTitle("Températures moyennes");
-            lineChart.getData().addAll(genererLignes(select(primaryStage)));
-            if (lineChart.getData().size()!=0)
-                lineChart.getData().remove(0);
 
-            borderPane.setCenter(lineChart);
+            FileChooser fc = new FileChooser();
+
+            lc.getData().addAll(donnees(fc.showOpenDialog(stage)));
+            if (lc.getData().size()!=1)
+                lc.getData().remove(0);
+
+            bp.setCenter(lc);
         });
+        final CategoryAxis mois1 = new CategoryAxis();
+        mois1.setLabel("Mois");
+        final NumberAxis chiffre1= new NumberAxis();
+        chiffre1.setLabel("Température");
+        final AreaChart<String,Number> ac = new AreaChart<>(mois1,chiffre1);
+        ac.setTitle("Températures moyennes");
 
-        AreaChart<String,Number> areaChart = new AreaChart<>(genX(),genY());
         regions.setOnAction((event) -> {
-            areaChart.setTitle("Températures moyennes");
-            areaChart.getData().addAll(genererLignes(select(primaryStage)));
-            if (areaChart.getData().size()!=0)
-                areaChart.getData().remove(0);
 
-            borderPane.setCenter(areaChart);
+            FileChooser fc = new FileChooser();
+
+            ac.getData().addAll(donnees(fc.showOpenDialog(stage)));
+            if (ac.getData().size()!=1)
+                ac.getData().remove(0);
+
+            bp.setCenter(ac);
         });
 
-        BarChart<String,Number> barChart = new BarChart<>(genX(),genY());
-        barres.setOnAction((event) -> {
-            barChart.setTitle("Températures moyennes");
-            barChart.getData().addAll(genererLignes(select(primaryStage)));
-            if (barChart.getData().size()!=1)
-                barChart.getData().remove(0);
+        final CategoryAxis mois2 = new CategoryAxis();
+        mois2.setLabel("Mois");
+        final NumberAxis chiffre2 = new NumberAxis();
+        chiffre2.setLabel("Températures");
+        final BarChart<String,Number> bc = new BarChart<>(mois2,chiffre2);
 
-            borderPane.setCenter(barChart);
+        barres.setOnAction((event) -> {
+
+            bc.setTitle("Températures moyennes");
+            FileChooser fc = new FileChooser();
+
+            bc.getData().addAll(donnees(fc.showOpenDialog(stage)));
+            if (bc.getData().size()!=1)
+                bc.getData().remove(0);
+
+            bp.setCenter(bc);
         });
 
         png.setOnAction((event) -> {
-            if (borderPane.getCenter()==lineChart)
-                saveAsPng(lineChart, primaryStage);
+            if (bp.getCenter()==lc)
+                saveAsPng(lc, stage);
 
-            if (borderPane.getCenter()==areaChart)
-                saveAsPng(areaChart, primaryStage);
+            if (bp.getCenter()==ac)
+                saveAsPng(ac, stage);
 
-            if (borderPane.getCenter()==barChart)
-                saveAsPng(barChart, primaryStage);
+            if (bp.getCenter()==bc)
+                saveAsPng(bc, stage);
         });
 
         gif.setOnAction((event) -> {
-            if (borderPane.getCenter()==lineChart)
-                saveAsGif(lineChart, primaryStage);
+            if (bp.getCenter()==lc)
+                saveAsGif(lc, stage);
 
-            if (borderPane.getCenter()==areaChart)
-                saveAsGif(areaChart, primaryStage);
+            if (bp.getCenter()==ac)
+                saveAsGif(ac,stage);
 
-            if (borderPane.getCenter()==barChart)
-                saveAsGif(barChart, primaryStage);
+            if (bp.getCenter()==bc)
+                saveAsGif(bc, stage);
         });
 
+        bp.setTop(menuBar);
 
-
-        //Disposition
-        borderPane.setTop(menuBar);
-
-        Scene scene = new Scene(borderPane);
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        Scene scene = new Scene(bp);
+        stage.setScene(scene);
+        stage.show();
     }
 
-    public XYChart.Series genererLignes(File file){
+    public XYChart.Series donnees(File file){
         try {
             List<String> allLines = Files.readAllLines(Paths.get(file.getPath()));
 
@@ -128,37 +148,10 @@ public class Main extends Application {
 
             return series;
         }catch (Exception e){
-            System.out.println("ok");
             XYChart.Series series = new XYChart.Series();
             series.setName("Données");
-            series.getData().add(new XYChart.Data("i", 0));
+            series.getData().add(new XYChart.Data(null, null));
             return series;
-        }
-    }
-
-    public CategoryAxis genX(){
-        CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setLabel("Mois");
-        return xAxis;
-    }
-
-    public NumberAxis genY(){
-        NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Température");
-        return yAxis;
-    }
-
-    public File select(Stage primaryStage){
-        try {
-            FileChooser fc = new FileChooser();
-            fc.setTitle("Veuillez sélectionner un fichier");
-            File fichier = fc.showOpenDialog(primaryStage);
-            fc.getExtensionFilters().addAll(
-                    new FileChooser.ExtensionFilter("Fichier dat", "*.dat"
-                    ));
-            return fichier;
-        }catch (Exception e){
-            return null;
         }
     }
 
